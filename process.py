@@ -5,13 +5,6 @@ from datetime import datetime
 from buildxml import buildGPXTrk, buildGPXWp, buildKMLTrk, buildKMLWp
 import subprocess
 
-writedeleted = False    # set to True/False to enable/disable *_del.txt output
-overwrite = False
-outputGPXTrk = True     # set to True/False to enable/disable *.gpx output
-outputGPXWp = True
-outputKMLTrk = True     # set to True/False to enable/disable *.kml output
-outputKMLWp = True
-
 rawdateformat = "%d.%m.%y"
 rawtimeformat = "%H:%M:%S"
 gpsdateformat = "%Y-%m-%dT"
@@ -45,6 +38,19 @@ if os.path.exists(configfile):
         else:
             cwd = pdir
             writelog("Working directory: %s" % cwd)
+        if "overwrite" in configdata:
+            overwrite = configdata["overwrite"]
+        else:
+            overwrite = False
+        if "writedeleted" in configdata:
+            writedeleted = configdata["writedeleted"]
+        else:
+            writedeleted = False
+        outputGPXTrk = configdata["outputGPXTrk"] if "outputGPXTrk" in configdata else True
+        outputGPXWp = configdata["outputGPXWp"] if "outputGPXWp" in configdata else True
+        outputKMLTrk = configdata["outputKMLTrk"] if "outputKMLTrk" in configdata else True
+        outputKMLWp = configdata["outputKMLWp"] if "outputKMLWp" in configdata else True
+        
 writelog()
 
 gammadir = os.path.join(cwd, "Gamma")
@@ -103,6 +109,7 @@ for datafile in datafiles:
     if writedeleted:
         ipath = os.path.join(gammadir, '%s_del.txt' % filename)
         ifile = open(ipath, 'w')
+        writelog("Generating delete file: %s" % ipath)
 
     for row in freader:
         rawrowcount += 1
