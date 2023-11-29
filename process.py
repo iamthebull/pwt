@@ -6,7 +6,7 @@ from buildxml import buildGPXTrk, buildGPXWp, buildKMLTrk, buildKMLWp
 import subprocess
 
 writedeleted = False    # set to True/False to enable/disable *_del.txt output
-overwrite = True
+overwrite = False
 outputGPXTrk = True     # set to True/False to enable/disable *.gpx output
 outputGPXWp = True
 outputKMLTrk = True     # set to True/False to enable/disable *.kml output
@@ -44,7 +44,7 @@ if os.path.exists(configfile):
             writelog(msg)
         else:
             cwd = pdir
-            writelog("Current directory: %s" % cwd)
+            writelog("Working directory: %s" % cwd)
 writelog()
 
 gammadir = os.path.join(cwd, "Gamma")
@@ -55,10 +55,6 @@ surfdir = os.path.join(cwd, "Surfer")
 for dir in [gammadir, gpxdir, kmldir, rapdir, surfdir]:
     if not os.path.exists(dir):
         os.makedirs(dir)
-
-print(pdir)
-print(cwd)
-exit()
 
 filenames = os.listdir(gammadir)
 
@@ -71,16 +67,19 @@ datafiles.sort()
 
 writelog("Found %s data files:" % len(datafiles))
 for f in datafiles:
-    writelog("%16s" % f)
+    writelog("    %s" % os.path.join(gammadir, f))
 writelog()
 
 for datafile in datafiles:
+    writelog("Processing data file: %s" % os.path.join(gammadir, datafile))
     filename = os.path.splitext(datafile)[0]
     wpath = os.path.join(gammadir, '%s_Edit.txt' % filename)
     if os.path.exists(wpath) and not overwrite:
         writelog("Found edit file: %s" % wpath)
         writelog()
         continue
+    else:
+        writelog("Generating edit file: %s" % wpath)
 
     rawrowcount = 0
     rowcount = 0
@@ -92,8 +91,6 @@ for datafile in datafiles:
     prevlon = prevlat = 0.0
     stats = {}
     addpoints = []
-
-    writelog("Processing file: %s" % datafile)
 
     dpath = os.path.join(gammadir, datafile)
     dfile = open(dpath, "r")
