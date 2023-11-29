@@ -1,7 +1,9 @@
 import os
+import json
 import csv
-from buildxml import buildGPXTrk, buildGPXWp, buildKMLTrk, buildKMLWp
 from datetime import datetime
+from buildxml import buildGPXTrk, buildGPXWp, buildKMLTrk, buildKMLWp
+import subprocess
 
 writedeleted = False    # set to True/False to enable/disable *_del.txt output
 overwrite = True
@@ -18,7 +20,33 @@ gpsdatetimeformat = gpsdateformat + gpstimeformat
 
 class invalidrow(Exception): pass
 
-cwd = os.path.dirname(os.path.realpath(__file__))
+pdir = os.path.dirname(os.path.realpath(__file__))
+
+now = datetime.now()
+
+logfile = open(os.path.join(pdir, "process.log"), "a")
+def writelog(line='', logfile=logfile): logfile.write(line + '\n')
+logdiv = "*"*60
+writelog(logdiv)
+writelog("Processing data - %s" % now.strftime("%Y.%m.%d %H:%M:%S"))
+writelog()
+
+configfile = os.path.join(pdir, "config.json")
+if os.path.exists(configfile):
+    with open(configfile) as cfile:
+        configdata = json.load(cfile)
+        if "path" in configdata:
+            cwd = configdata["path"]
+            msg = "Working directory: %s" % cwd
+            if not os.path.exists(cwd):
+                os.makedirs(cwd)
+                msg += " was created"
+            writelog(msg)
+        else:
+            cwd = pdir
+            writelog("Current directory: %s" % cwd)
+writelog()
+
 gammadir = os.path.join(cwd, "Gamma")
 gpxdir = os.path.join(cwd, "GPX")
 kmldir = os.path.join(cwd, "KML")
@@ -28,16 +56,9 @@ for dir in [gammadir, gpxdir, kmldir, rapdir, surfdir]:
     if not os.path.exists(dir):
         os.makedirs(dir)
 
-now = datetime.now()
-
-logfile = open(os.path.join(cwd, "process.log"), "a")
-def writelog(line='', logfile=logfile): logfile.write(line + '\n')
-logdiv = "*"*60
-writelog(logdiv)
-writelog("Processing data - %s" % now.strftime("%Y.%m.%d %H:%M:%S"))
-writelog()
-writelog("Current directory: %s" % cwd)
-writelog()
+print(pdir)
+print(cwd)
+exit()
 
 filenames = os.listdir(gammadir)
 
@@ -244,3 +265,5 @@ for datafile in datafiles:
 writelog("Processing completed - %s" % datetime.now().strftime("%Y.%m.%d %H:%M:%S"))
 writelog(logdiv)
 logfile.close()
+
+
