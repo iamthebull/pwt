@@ -5,3 +5,4 @@ __pycache__
 *.gpx
 *.srf
 *_.py
+*.json
