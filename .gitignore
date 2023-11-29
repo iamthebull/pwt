@@ -4,3 +4,4 @@ __pycache__
 *.kml
 *.gpx
 *.srf
+*_.py
