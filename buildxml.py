@@ -1,13 +1,17 @@
 import os
-# import xml.etree.ElementTree as ETree
-from lxml import etree as ETree
+import xml.etree.ElementTree as ETree
 
 kmlns = {
         "":"http://www.opengis.net/kml/2.2",
-        "gx":"http://www.google.com/kml/ext/2.2",
-        # "kml":"http://www.opengis.net/kml/2.2",
-        "atom":"http://www.w3.org/2005/Atom"
+        "gx":"http://www.google.com/kml/ext/2.2"
         }
+
+def writeTree(root, file, regns=False):
+    if regns:
+        for (prefix, uri) in kmlns.items(): ETree.register_namespace(prefix, uri)
+    tree = ETree.ElementTree(root)
+    ETree.indent(tree)
+    tree.write(file, encoding="utf-8", xml_declaration=True)
 
 def buildGPXTrk(filepath, rawdatetime, points, stats, dtformat):
     root = ETree.Element("gpx", version="1.0", creator="PGamma")
@@ -19,9 +23,7 @@ def buildGPXTrk(filepath, rawdatetime, points, stats, dtformat):
         trkpt = ETree.SubElement(trkseg, "trkpt", lat=str(point["lat"]), lon=str(point["lon"]))
         ETree.SubElement(trkpt, "ele").text = str(point["alt"])
         ETree.SubElement(trkpt, "time").text = point["datetm"].strftime(dtformat)
-    tree = ETree.ElementTree(root)
-    ETree.indent(tree)
-    tree.write(filepath, encoding="utf-8", xml_declaration=True)
+    writeTree(root, filepath)
 
 def buildGPXWp(filepath, rawdatetime, points, dtformat):
     root = ETree.Element("gpx", version="1.1", creator="PGamma")
@@ -35,46 +37,48 @@ def buildGPXWp(filepath, rawdatetime, points, dtformat):
         ETree.SubElement(wpt, "name").text = "%s" % index
         ETree.SubElement(wpt, "sym").text = "Flag, Blue"
         index += 1
-    tree = ETree.ElementTree(root)
-    ETree.indent(tree)
-    tree.write(filepath, encoding="utf-8", xml_declaration=True)
-
-# def buildKMLRoot():
-#     return ETree.Element("kml")
+    writeTree(root, filepath)
 
 def buildKMLRoot():
     root = ETree.Element("kml")
     root.set("xmlns","http://www.opengis.net/kml/2.2")
     root.set("xmlns:gx", "http://www.google.com/kml/ext/2.2")
-    root.set("xmlns:kml", "http://www.opengis.net/kml/2.2")
-    root.set("xmlns:atom", "http://www.w3.org/2005/Atom")
     return root
 
-# def buildKMLAllRoot(outputTrk, outputWp):
-#     root = buildKMLRoot()
-#     allfolder = ETree.SubElement(root, "Folder")
-#     ETree.SubElement(allfolder, "name").text = "all"
-#     ETree.SubElement(allfolder, "open").text = "1"
-#     if outputTrk:
-#         trkfolder = ETree.SubElement(allfolder, "Folder")
-#         ETree.SubElement(trkfolder, "name").text = "tracks"
-#         ETree.SubElement(trkfolder, "open").text = "1"
-#     else:
-#         trkfolder = None
-#     if outputWp:
-#         wpfolder = ETree.SubElement(allfolder, "Folder")
-#         ETree.SubElement(wpfolder, "name").text = "waypoints"
-#         ETree.SubElement(wpfolder, "open").text = "1"
-#     else:
-#         wpfolder = None
-#     return (root, trkfolder, wpfolder)
-
-def buildKMLAllRoot():
+def buildKMLTemplate(file):
     root = buildKMLRoot()
+    
     allfolder = ETree.SubElement(root, "Folder")
     ETree.SubElement(allfolder, "name").text = "all"
     ETree.SubElement(allfolder, "open").text = "1"
-    return (root)
+    
+    gridfolder = ETree.SubElement(allfolder, "Folder")
+    ETree.SubElement(gridfolder, "name").text = "grids"
+    ETree.SubElement(gridfolder, "open").text = "1"
+    
+    trkfolder = ETree.SubElement(allfolder, "Folder")
+    ETree.SubElement(trkfolder, "name").text = "tracks"
+    ETree.SubElement(trkfolder, "open").text = "1"
+    
+    wpfolder = ETree.SubElement(allfolder, "Folder")
+    ETree.SubElement(wpfolder, "name").text = "waypoints"
+    ETree.SubElement(wpfolder, "open").text = "1"
+
+    otherfolder = ETree.SubElement(allfolder, "Folder")
+    ETree.SubElement(otherfolder, "name").text = "other"
+    ETree.SubElement(otherfolder, "open").text = "1"
+
+    writeTree(root, file)
+
+def getKMLTemplate(path):
+    folderpath = os.path.join(path, "Template")
+    if not os.path.exists(folderpath):
+        os.makedirs(folderpath)
+    filepath = os.path.join(folderpath, "template.kml")
+    if not os.path.exists(filepath):
+        buildKMLTemplate(filepath)
+    tree = ETree.parse(filepath)
+    return tree.getroot()
 
 def buildKMLTrk(filepath, points, stats, dtformat):
     filename = os.path.splitext(os.path.basename(filepath))[0]
@@ -173,10 +177,7 @@ def buildKMLTrk(filepath, points, stats, dtformat):
     ETree.SubElement(linestring, "tessellate").text = "1"
     ETree.SubElement(linestring, "coordinates").text = coordsall
 
-    # for (prefix, uri) in kmlns.items(): ETree.register_namespace(prefix, uri)
-    tree = ETree.ElementTree(root)
-    ETree.indent(tree)
-    tree.write(filepath, encoding="utf-8", xml_declaration=True)
+    writeTree(root, filepath)
 
 def buildKMLWp(filepath, points, stats, dtformat):
     filename = os.path.splitext(os.path.basename(filepath))[0]
@@ -227,110 +228,65 @@ def buildKMLWp(filepath, points, stats, dtformat):
         ETree.SubElement(pt, "coordinates").text = "%0.6f,%0.6f,%0.1f" % (point["lon"], point["lat"], point["alt"])
         index += 1
 
-    # for (prefix, uri) in kmlns.items(): ETree.register_namespace(prefix, uri)
-    tree = ETree.ElementTree(root)
-    ETree.indent(tree)
-    tree.write(filepath, encoding="utf-8", xml_declaration=True)
+    writeTree(root, filepath)
 
 def combineKML(kmldir, overwrite=False):
-    # for (prefix, uri) in kmlns.items():
-    #     # print(prefix, uri)
-    #     ETree.register_namespace(prefix, uri)
-    # ETree.register_namespace("", "http://www.opengis.net/kml/2.2")
-    # ns = kmlns
+    docs = {}
     allfile = "all"
     file = os.path.join(kmldir, "%s.kml" % allfile)
     if os.path.exists(file):
         tree = ETree.parse(file)
         root = tree.getroot()
-        # print('exists')
-    else:
-        root = buildKMLAllRoot()
-        print('building')
-    docs = {}
-    for folder in root.findall('./Folder/Folder', kmlns):
-        # print(folder)
-        foldername = folder.find('name', kmlns).text
-        docs[foldername] = {}
-        for doc in folder.findall('Document', kmlns):
-            docname = doc.find('name', kmlns).text
-            # print(docname)
-            docs[foldername][docname] = doc
-            print(docname, doc)
-    # print(docs)
-    print()
+        allfolders = root.findall('./Folder/Folder', kmlns)
+        print('before')
+        for folder in allfolders:
+            foldername = folder.find('name', kmlns).text
+            print(foldername)
+            docs[foldername] = {}
+            for doc in folder.findall('Document', kmlns):
+                docname = doc.find('name', kmlns).text
+                print('\t', docname)
+                docs[foldername][docname] = doc
+
     kmlfiles = [os.path.splitext(kmlfile)[0] for kmlfile in os.listdir(kmldir) if os.path.splitext(kmlfile)[1].lower() == ".kml"]
     if allfile in kmlfiles: kmlfiles.remove(allfile)
     for kmlfile in kmlfiles:
         kmltype = kmlfile.rsplit("_", maxsplit=1)[1]
         if kmltype == "trk":
-            # print(kmlfile, "is trk")
             if not "tracks" in docs:
                 docs["tracks"] = {}
-                print("creating tracks")
-            else:
-                print('tracks found')
             if not kmlfile in docs["tracks"] or overwrite:
                 docs["tracks"][kmlfile] = ETree.parse(os.path.join(kmldir, "%s.kml" % kmlfile)).getroot().find('Document', kmlns)
-                print("%s creating" % kmlfile)
-            else:
-                print("%s exists" % kmlfile)
-            print()
         elif kmltype == "wp":
-            # print(kmlfile, "is wp")
             if not "waypoints" in docs:
                 docs["waypoints"] = {}
-                print("creating waypoints")
-            else:
-                print('waypoints found')
             if not kmlfile in docs["waypoints"] or overwrite:
                 docs["waypoints"][kmlfile] = ETree.parse(os.path.join(kmldir, "%s.kml" % kmlfile)).getroot().find('Document', kmlns)
-                print("%s creating" % kmlfile)
-            else:
-                print("%s exists" % kmlfile)
-            print()
-            print()
         elif kmltype == "grid":
-            # print(kmlfile, "is grid")
-            print()
+            if not "grids" in docs:
+                docs["grids"] = {}
+            if not kmlfile in docs["grids"] or overwrite:
+                gElem = ETree.parse(os.path.join(kmldir, "%s.kml" % kmlfile)).getroot().find('Document', kmlns)
+                nElem = ETree.Element('name')
+                nElem.text = kmlfile
+                gElem.insert(0, nElem)
+                docs["grids"][kmlfile] = gElem
         else:
-            pass
-            # print(kmlfile, "is other")
+            if not "other" in docs:
+                docs["other"] = {}
+            if not kmlfile in docs["other"] or overwrite:
+                docs["other"][kmlfile] = ETree.parse(os.path.join(kmldir, "%s.kml" % kmlfile)).getroot().find('Document', kmlns)
     # build new tree
-    print("building new root")
-    root2 = buildKMLAllRoot()
-    all2 = findKMLAllFolder(root2)
-    print(all2)
-    print(sorted(list(docs)))
+    print('after')
+    root2 = getKMLTemplate(kmldir)
     for folder in sorted(list(docs)):
         print(folder)
-        folderElement = findKMLFolder(root2, folder)
-        print(folderElement, "folder element")
-        if not folderElement:
-            print("%s folder added" % folder)
-            folderElement = addKMLFolder(root2, folder)
+        folderElement = root2.find('./Folder/Folder[name="%s"]' % folder, kmlns)
         for docname in sorted(docs[folder]):
             folderElement.append(docs[folder][docname])
-            print("%s doc added" % docname)
+            print("\t%s doc added" % docname)
+    writeTree(root2, os.path.join(kmldir, "temp", "all_out.kml"), regns=True)
 
-    tree2 = ETree.ElementTree(root2)
-    ETree.indent(tree2)
-    tree2.write(os.path.join(kmldir, "temp", "all.kml"), encoding="utf-8", xml_declaration=True)
-
-def findKMLFolder(root, foldername):
-    return root.find('./Folder/Folder[name="%s"]' % foldername)
-
-def addKMLFolder(root, foldername):
-    folder = findKMLFolder(root, foldername)
-    if not folder:
-        allfolder = findKMLAllFolder(root)
-        folder = ETree.SubElement(allfolder, "Folder")
-        ETree.SubElement(folder, "name").text = foldername
-        ETree.SubElement(folder, "open").text = "1"
-    return folder
-
-def findKMLAllFolder(root):
-    return root.find('./Folder[name="all"]')
-
-# kmlpath = "C:\\Projects\\Testing\\KML"
-# combineKML(kmlpath)
+if __name__ == '__main__':
+    kmlpath = "C:\\Projects\\Testing\\KML"
+    combineKML(kmlpath)
