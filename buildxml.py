@@ -113,20 +113,20 @@ def buildKMLTrk(filepath, points, stats, dtformat):
     ETree.SubElement(lstyle, "color").text = "99ffac59"
     ETree.SubElement(lstyle, "width").text = "6"
 
-    stylemap = ETree.SubElement(doc, "StyleMap", id="track-none")
+    stylemap = ETree.SubElement(doc, "StyleMap", id="track-none-%s" % filename)
     pair = ETree.SubElement(stylemap, "Pair")
     ETree.SubElement(pair, "key").text = "normal"
-    ETree.SubElement(pair, "styleUrl").text = "#track-none_n"
+    ETree.SubElement(pair, "styleUrl").text = "#track-none-%s_n" % filename
     pair = ETree.SubElement(stylemap, "Pair")
     ETree.SubElement(pair, "key").text = "highlight"
-    ETree.SubElement(pair, "styleUrl").text = "#track-none_h"
-    style = ETree.SubElement(doc, "Style", id="track-none_h")
+    ETree.SubElement(pair, "styleUrl").text = "#track-none-%s_h" % filename
+    style = ETree.SubElement(doc, "Style", id="track-none-%s_h" % filename)
     iconstyle = ETree.SubElement(style, "IconStyle")
     ETree.SubElement(iconstyle, "scale").text = "1.2"
     ETree.SubElement(iconstyle, "heading").text = "0"
     icon = ETree.SubElement(iconstyle, "Icon")
     ETree.SubElement(icon, "href").text = "https://earth.google.com/images/kml-icons/track-directional/track-none.png"
-    style = ETree.SubElement(doc, "Style", id="track-none_n")
+    style = ETree.SubElement(doc, "Style", id="track-none-%s_n" % filename)
     iconstyle = ETree.SubElement(style, "IconStyle")
     ETree.SubElement(iconstyle, "scale").text = "0.5"
     ETree.SubElement(iconstyle, "heading").text = "0"
@@ -163,7 +163,7 @@ def buildKMLTrk(filepath, points, stats, dtformat):
         ETree.SubElement(lookatpm, "range").text = "100"
         timestamp = ETree.SubElement(placemark, "TimeStamp")
         ETree.SubElement(timestamp, "when").text = point["datetm"].strftime(dtformat)
-        ETree.SubElement(placemark, "styleUrl").text = "#track-none"
+        ETree.SubElement(placemark, "styleUrl").text = "#track-none-%s" % filename
         pt = ETree.SubElement(placemark, "Point")
         coords = "%0.6f,%0.6f,%0.1f" % (point["lon"],point["lat"],point["alt"])
         ETree.SubElement(pt, "coordinates").text = coords
