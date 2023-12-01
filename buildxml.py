@@ -196,19 +196,19 @@ def buildKMLWp(filepath, points, stats, dtformat):
     ETree.SubElement(lookat, "tilt").text = "0"
     ETree.SubElement(lookat, "range").text = "100"
 
-    stylemap = ETree.SubElement(doc, "StyleMap", id="waypoint")
+    stylemap = ETree.SubElement(doc, "StyleMap", id="waypoint-%s" % filename)
     pair = ETree.SubElement(stylemap, "Pair")
     ETree.SubElement(pair, "key").text = "normal"
-    ETree.SubElement(pair, "styleUrl").text = "#waypoint_n"
+    ETree.SubElement(pair, "styleUrl").text = "#waypoint-%s_n" % filename
     pair = ETree.SubElement(stylemap, "Pair")
     ETree.SubElement(pair, "key").text = "highlight"
-    ETree.SubElement(pair, "styleUrl").text = "#waypoint_h"
-    style = ETree.SubElement(doc, "Style", id="waypoint_h")
+    ETree.SubElement(pair, "styleUrl").text = "#waypoint-%s_h" % filename
+    style = ETree.SubElement(doc, "Style", id="waypoint-%s_h" % filename)
     iconstyle = ETree.SubElement(style, "IconStyle")
     ETree.SubElement(iconstyle, "scale").text = "1.2"
     icon = ETree.SubElement(iconstyle, "Icon")
     ETree.SubElement(icon, "href").text = "https://maps.google.com/mapfiles/kml/pal4/icon61.png"
-    style = ETree.SubElement(doc, "Style", id="waypoint_n")
+    style = ETree.SubElement(doc, "Style", id="waypoint-%s_n" % filename)
     iconstyle = ETree.SubElement(style, "IconStyle")
     ETree.SubElement(iconstyle, "scale").text = "1"
     icon = ETree.SubElement(iconstyle, "Icon")
@@ -223,7 +223,7 @@ def buildKMLWp(filepath, points, stats, dtformat):
         ETree.SubElement(placemark, "name").text = str(index)
         timestamp = ETree.SubElement(placemark, "TimeStamp")
         ETree.SubElement(timestamp, "when").text = point["datetm"].strftime(dtformat)
-        ETree.SubElement(placemark, "styleUrl").text = "#waypoint"
+        ETree.SubElement(placemark, "styleUrl").text = "#waypoint-%s" % filename
         pt = ETree.SubElement(placemark, "Point")
         ETree.SubElement(pt, "coordinates").text = "%0.6f,%0.6f,%0.1f" % (point["lon"], point["lat"], point["alt"])
         index += 1
