@@ -2,7 +2,7 @@ import os
 import json
 import csv
 from datetime import datetime
-from buildxml import buildGPXTrk, buildGPXWp, buildKMLTrk, buildKMLWp
+from buildxml import buildGPXTrk, buildGPXWp, buildKMLTrk, buildKMLWp, combineKML
 import subprocess
 
 rawdateformat = "%d.%m.%y"
@@ -266,8 +266,10 @@ for datafile in datafiles:
     
     writelog()
 
+# combine KML files
+combineKML(kmldir, overwrite=overwrite, writelog=writelog)
+
+writelog()
 writelog("Processing completed - %s" % datetime.now().strftime("%Y.%m.%d %H:%M:%S"))
 writelog(logdiv)
 logfile.close()
-
-
