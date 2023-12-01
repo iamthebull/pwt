@@ -232,13 +232,13 @@ def buildKMLWp(filepath, points, stats, dtformat):
 
 def combineKML(kmldir, overwrite=False):
     docs = {}
+    print('docs existing')
     allfile = "all"
     file = os.path.join(kmldir, "%s.kml" % allfile)
     if os.path.exists(file):
         tree = ETree.parse(file)
         root = tree.getroot()
         allfolders = root.findall('./Folder/Folder', kmlns)
-        print('before')
         for folder in allfolders:
             foldername = folder.find('name', kmlns).text
             print(foldername)
@@ -247,7 +247,7 @@ def combineKML(kmldir, overwrite=False):
                 docname = doc.find('name', kmlns).text
                 print('\t', docname)
                 docs[foldername][docname] = doc
-
+    print("docs added")
     kmlfiles = [os.path.splitext(kmlfile)[0] for kmlfile in os.listdir(kmldir) if os.path.splitext(kmlfile)[1].lower() == ".kml"]
     if allfile in kmlfiles: kmlfiles.remove(allfile)
     for kmlfile in kmlfiles:
@@ -256,16 +256,19 @@ def combineKML(kmldir, overwrite=False):
             if not "tracks" in docs:
                 docs["tracks"] = {}
             if not kmlfile in docs["tracks"] or overwrite:
+                print(kmlfile, "added")
                 docs["tracks"][kmlfile] = ETree.parse(os.path.join(kmldir, "%s.kml" % kmlfile)).getroot().find('Document', kmlns)
         elif kmltype == "wp":
             if not "waypoints" in docs:
                 docs["waypoints"] = {}
             if not kmlfile in docs["waypoints"] or overwrite:
+                print(kmlfile, "added")
                 docs["waypoints"][kmlfile] = ETree.parse(os.path.join(kmldir, "%s.kml" % kmlfile)).getroot().find('Document', kmlns)
         elif kmltype == "grid":
             if not "grids" in docs:
                 docs["grids"] = {}
             if not kmlfile in docs["grids"] or overwrite:
+                print(kmlfile, "added")
                 gElem = ETree.parse(os.path.join(kmldir, "%s.kml" % kmlfile)).getroot().find('Document', kmlns)
                 nElem = ETree.Element('name')
                 nElem.text = kmlfile
@@ -275,17 +278,15 @@ def combineKML(kmldir, overwrite=False):
             if not "other" in docs:
                 docs["other"] = {}
             if not kmlfile in docs["other"] or overwrite:
+                print(kmlfile, "added")
                 docs["other"][kmlfile] = ETree.parse(os.path.join(kmldir, "%s.kml" % kmlfile)).getroot().find('Document', kmlns)
     # build new tree
-    print('after')
     root2 = getKMLTemplate(kmldir)
     for folder in sorted(list(docs)):
-        print(folder)
         folderElement = root2.find('./Folder/Folder[name="%s"]' % folder, kmlns)
         for docname in sorted(docs[folder]):
             folderElement.append(docs[folder][docname])
-            print("\t%s doc added" % docname)
-    writeTree(root2, os.path.join(kmldir, "temp", "all_out.kml"), regns=True)
+    writeTree(root2, os.path.join(kmldir, "all.kml"), regns=True)
 
 if __name__ == '__main__':
     kmlpath = "C:\\Projects\\Testing\\KML"
