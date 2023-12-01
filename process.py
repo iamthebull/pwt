@@ -28,16 +28,18 @@ configfile = os.path.join(pdir, "config.json")
 if os.path.exists(configfile):
     with open(configfile) as cfile:
         configdata = json.load(cfile)
-        if "path" in configdata:
-            cwd = configdata["path"]
-            msg = "Working directory: %s" % cwd
-            if not os.path.exists(cwd):
-                os.makedirs(cwd)
-                msg += " was created"
-            writelog(msg)
-        else:
+        msg = "Working directory: ~"
+        if not "path" in configdata:
             cwd = pdir
-            writelog("Working directory: %s" % cwd)
+        else:
+            if configdata["path"] == "":
+                cwd = pdir
+            else:
+                cwd = configdata["path"]
+                if not os.path.exists(cwd):
+                    os.makedirs(cwd)
+                    msg += " was created"
+        writelog(msg.replace("~", cwd))
         if "overwrite" in configdata:
             overwrite = configdata["overwrite"]
         else:
