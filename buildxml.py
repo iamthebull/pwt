@@ -97,18 +97,18 @@ def buildKMLTrk(filepath, points, stats, dtformat):
     ETree.SubElement(lookat, "tilt").text = "0"
     ETree.SubElement(lookat, "range").text = "100"
 
-    stylemap = ETree.SubElement(doc, "StyleMap", id="lineStyle")
+    stylemap = ETree.SubElement(doc, "StyleMap", id="lineStyle-%s" % filename)
     pair = ETree.SubElement(stylemap, "Pair")
     ETree.SubElement(pair, "key").text = "normal"
-    ETree.SubElement(pair, "styleUrl").text = "#lineStyle_n"
+    ETree.SubElement(pair, "styleUrl").text = "#lineStyle-%s_n" % filename
     pair = ETree.SubElement(stylemap, "Pair")
     ETree.SubElement(pair, "key").text = "highlight"
-    ETree.SubElement(pair, "styleUrl").text = "#lineStyle_h"
-    style = ETree.SubElement(doc, "Style", id="lineStyle_h")
+    ETree.SubElement(pair, "styleUrl").text = "#lineStyle-%s_h" % filename
+    style = ETree.SubElement(doc, "Style", id="lineStyle-%s_h" % filename)
     lstyle = ETree.SubElement(style, "LineStyle")
     ETree.SubElement(lstyle, "color").text = "99ffac59"
     ETree.SubElement(lstyle, "width").text = "6"
-    style = ETree.SubElement(doc, "Style", id="lineStyle_n")
+    style = ETree.SubElement(doc, "Style", id="lineStyle-%s_n" % filename)
     lstyle = ETree.SubElement(style, "LineStyle")
     ETree.SubElement(lstyle, "color").text = "99ffac59"
     ETree.SubElement(lstyle, "width").text = "6"
@@ -172,7 +172,7 @@ def buildKMLTrk(filepath, points, stats, dtformat):
 
     placemark2 = ETree.SubElement(subfolder, "Placemark")
     ETree.SubElement(placemark2, "name").text = "Path"
-    ETree.SubElement(placemark2, "styleUrl").text = "#lineStyle"
+    ETree.SubElement(placemark2, "styleUrl").text = "#lineStyle-%s" % filename
     linestring = ETree.SubElement(placemark2, "LineString")
     ETree.SubElement(linestring, "tessellate").text = "1"
     ETree.SubElement(linestring, "coordinates").text = coordsall
