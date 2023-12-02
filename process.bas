@@ -65,10 +65,10 @@ Sub Main
 	Else
 		rootdir = cwd
 	End If
-	datafiledir = rootdir + "Gamma\"
-	surfdir = rootdir + "Surfer\"
-	kmldir = rootdir + "KML\"
-	rapdir = rootdir + "RAP\"
+	datafiledir = rootdir + "\Gamma\"
+	surfdir = rootdir + "\Surfer\"
+	kmldir = rootdir + "\KML\"
+	rapdir = rootdir + "\RAP\"
 
 	Debug.Clear
 
