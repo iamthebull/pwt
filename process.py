@@ -24,35 +24,38 @@ writelog(logdiv)
 writelog("%s - Processing - %s" % (os.path.basename(__file__), now.strftime("%Y.%m.%d %H:%M:%S")))
 writelog()
 
-configfile = os.path.join(pdir, "config.json")
+configdata = {}
+configfile = os.path.join(pdir, "config.txt")
 if os.path.exists(configfile):
-	with open(configfile) as cfile:
-		configdata = json.load(cfile)
-		msg = "Working directory: ~"
-		if not "path" in configdata:
-			cwd = pdir
-		else:
-			if configdata["path"] == "":
-				cwd = pdir
-			else:
-				cwd = configdata["path"]
-				if not os.path.exists(cwd):
-					os.makedirs(cwd)
-					msg += " was created"
-		writelog(msg.replace("~", cwd))
-		if "overwrite" in configdata:
-			overwrite = configdata["overwrite"]
-		else:
-			overwrite = False
-		if "writedeleted" in configdata:
-			writedeleted = configdata["writedeleted"]
-		else:
-			writedeleted = False
-		outputGPXTrk = configdata["outputGPXTrk"] if "outputGPXTrk" in configdata else True
-		outputGPXWp = configdata["outputGPXWp"] if "outputGPXWp" in configdata else True
-		outputKMLTrk = configdata["outputKMLTrk"] if "outputKMLTrk" in configdata else True
-		outputKMLWp = configdata["outputKMLWp"] if "outputKMLWp" in configdata else True
-		
+	writelog("Reading config - %s" % configfile)
+	writelog()
+	with open(configfile, 'r', newline='') as cfgfile:
+		creader = csv.reader(cfgfile, delimiter='=')
+		for row in creader:
+			if len(row) == 2 and row[0][0] != "#":
+				configdata[row[0].strip()] = row[1].strip()
+else:
+	writelog("Config file not found - using defaults")
+	writelog()
+msg = "Working directory: ~"
+if not "dir" in configdata:
+	cwd = pdir
+else:
+	if configdata["dir"] == "":
+		cwd = pdir
+	else:
+		cwd = configdata["dir"]
+		if not os.path.exists(cwd):
+			os.makedirs(cwd)
+			msg += " was created"
+writelog(msg.replace("~", cwd))
+overwrite = configdata["overwrite"].lower() == 'true' if "overwrite" in configdata else False
+writedeleted = configdata["writedeleted"].lower() == 'true' if "writedeleted" in configdata else False
+outputGPXTrk = configdata["outputGPXTrk"].lower() == 'true' if "outputGPXTrk" in configdata else True
+outputGPXWp = configdata["outputGPXWp"].lower() == 'true' if "outputGPXWp" in configdata else True
+outputKMLTrk = configdata["outputKMLTrk"].lower() == 'true' if "outputKMLTrk" in configdata else True
+outputKMLWp = configdata["outputKMLWp"].lower() == 'true' if "outputKMLWp" in configdata else True
+
 writelog()
 
 gammadir = os.path.join(cwd, "Gamma")
