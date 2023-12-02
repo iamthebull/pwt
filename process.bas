@@ -75,10 +75,6 @@ Sub Main
 	logf = FreeFile
 	logdiv = String(60, "*")
 	Open cwd + "\process.log" For Append As #logf
-	Print #logf, cwd
-	Print #logf, pdir
-	Print #logf, Command$
-	
 	Print #logf, logdiv
 	Print #logf, "process.bas - Processing - " + getNowStr()
 	Print #logf, ""
