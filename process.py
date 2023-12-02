@@ -21,7 +21,7 @@ logfile = open(os.path.join(pdir, "process.log"), "a")
 def writelog(line='', logfile=logfile): logfile.write(line + '\n')
 logdiv = "*"*60
 writelog(logdiv)
-writelog("Processing data - %s" % now.strftime("%Y.%m.%d %H:%M:%S"))
+writelog("%s - Processing - %s" % (os.path.basename(__file__), now.strftime("%Y.%m.%d %H:%M:%S")))
 writelog()
 
 configfile = os.path.join(pdir, "config.json")
