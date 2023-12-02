@@ -83,7 +83,7 @@ Sub Main
 	Print #logf, "process.bas - Processing - " + getNowStr()
 	Print #logf, ""
 
-	Print #logf, "Processing files in: " + rootdir
+	Print #logf, "Working directory: " + rootdir
 	Print #logf, ""
 
 	Debug.Print "Processing gamma"
