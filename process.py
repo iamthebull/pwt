@@ -277,3 +277,6 @@ writelog()
 writelog("Processing completed - %s" % datetime.now().strftime("%Y.%m.%d %H:%M:%S"))
 writelog(logdiv)
 logfile.close()
+
+if "scripter" in configdata:
+	subprocess.run([configdata["scripter"], "-x", os.path.join(pdir,"process.bas"), cwd])
