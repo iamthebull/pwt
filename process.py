@@ -1,5 +1,4 @@
 import os
-import json
 import csv
 from datetime import datetime
 from buildxml import buildGPXTrk, buildGPXWp, buildKMLTrk, buildKMLWp, combineKML
