@@ -1,35 +1,41 @@
 ' script for creating surfer plots
 Sub Main
 
+	' get the current dir
+	cwd = CurDir
+	configArray = readConfigFile(cwd)
+
 	' configuration settings
-	background = True
-	leaveopen = True
-	pageWidth = 17
-	pageHeight = 11
-    defaultDir = "C:\_Working\"
+	pdir = getConfigVal("dir", configArray, "str")
+	background = getConfigVal("background", configArray, "bool")
+	leaveopen = getConfigVal("leaveopen", configArray, "bool")
+	pageWidth = getConfigVal("pageWidth", configArray, "val")
+	pageHeight = getConfigVal("pageHeight", configArray, "val")
+
 	' map size
-	mapheight = 8
+	mapheight = getConfigVal("mapheight", configArray, "val")
 	maptop = mapheight + 1
-	mapmargin = 1
-	widescale = 4
+	mapmargin = getConfigVal("mapmargin", configArray, "val")
+	widescale = getConfigVal("widescale", configArray, "val")
 	' scale size
 	scaletop = maptop - 1
-	scalecellwidth = 1.75
-	scaleoffset = 0.2
+	scalecellwidth = getConfigVal("scalecellwidth", configArray, "val")
+	scaleoffset = getConfigVal("scaleoffset", configArray, "val")
 	' space size
-	spacecellwidth = 1
+	spacecellwidth = getConfigVal("spacecellwidth", configArray, "val")
 
 	'axis labels
-	showtopaxislabels = True
-	showbottomaxislabels = True
-	showleftaxislabels = True
-	showrightaxislabels = False
+	showtopaxislabels = getConfigVal("showtopaxislabels", configArray, "bool")
+	showbottomaxislabels = getConfigVal("showbottomaxislabels", configArray, "bool")
+	showleftaxislabels = getConfigVal("showleftaxislabels", configArray, "bool")
+	showrightaxislabels = getConfigVal("showrightaxislabels", configArray, "bool")
 	' axis titles
-	showtopaxistitle = False
-	showbottomaxistitle = True
-	showleftaxistitle = True
-	showrightaxistitle = False
-	axistitleoffset = -0.05
+	showtopaxistitle = getConfigVal("showtopaxistitle", configArray, "bool")
+	showbottomaxistitle = getConfigVal("showbottomaxistitle", configArray, "bool")
+	showleftaxistitle = getConfigVal("showleftaxistitle", configArray, "bool")
+	showrightaxistitle = getConfigVal("showrightaxistitle", configArray, "bool")
+	axistitleoffset = getConfigVal("axistitleoffset", configArray, "val")
+
 	If showtopaxistitle Then
 		topaxistitle = "[meters]"
 	Else
@@ -51,46 +57,56 @@ Sub Main
 		rightaxistitle = ""
 	End If
 
-	Debug.Clear
-
-	Open CurDir() + "\logfile.txt" For Append As #1
-	Print #1, "************************************************"
-	Print #1, "Start Log - " + Str(Now)
-	Print #1, ""
-
-	Set surf = CreateObject("surfer.application")
-	surf.Visible = Not background
-
-	If Command$ = "" Then
-		rootdir = defaultDir
-	Else
+	' set directories
+	If Command$ <> "" Then
 		rootdir = Command$
+	ElseIf pdir <> "" Then
+		rootdir = pdir
+	Else
+		rootdir = cwd
 	End If
-	Print #1, "Processing files in: " + rootdir
-	Print #1, ""
 	datafiledir = rootdir + "Gamma\"
 	surfdir = rootdir + "Surfer\"
 	kmldir = rootdir + "KML\"
 	rapdir = rootdir + "RAP\"
 
+	Debug.Clear
+
+	logf = FreeFile
+	logdiv = String(60, "*")
+	Open cwd + "\process.log" For Append As #logf
+	Print #logf, cwd
+	Print #logf, pdir
+	Print #logf, Command$
+	
+	Print #logf, logdiv
+	Print #logf, "process.bas - Processing - " + getNowStr()
+	Print #logf, ""
+
+	Print #logf, "Processing files in: " + rootdir
+	Print #logf, ""
+
 	Debug.Print "Processing gamma"
 	Debug.Print ""
 
-    Print #1, "Processing gamma"
-    Print #1, ""
+    Print #logf, "Processing gamma"
+    Print #logf, ""
+
+	Set surf = CreateObject("surfer.application")
+	surf.Visible = Not background
 
 	datafiles = GetFiles(datafiledir, "*_Edit.txt")
 	For Each datafile In datafiles
 		Debug.Print "Found datafile: " + datafiledir + datafile
-		Print #1, "Found datafile: " + datafiledir + datafile
+		Print #logf, "Found datafile: " + datafiledir + datafile
 		filename = Split(datafile, ".")(0)
 		gridfile = datafiledir + filename + ".grd"
 		If Dir(gridfile) <> "" Then
 			Debug.Print "Found gridfile: " + gridfile
-			Print #1, "Found gridfile: " + gridfile
+			Print #logf, "Found gridfile: " + gridfile
 		Else
 			Debug.Print "Creating grid file: " + gridfile
-			Print #1, "Creating grid file: " + gridfile
+			Print #logf, "Creating grid file: " + gridfile
 			' create grid file
 			surf.GridData(DataFile:= datafiledir + datafile,  xCol:=4, yCol:=3, zCol:=2, Algorithm:=srfKriging, ShowReport:=False, OutGrid:=gridfile)
 		End If
@@ -98,10 +114,10 @@ Sub Main
 		plotfile = surfdir + filename + ".srf"
 		If Dir(plotfile) <> "" Then
 			Debug.Print "Found plotfile: " + plotfile
-			Print #1, "Found plotfile: " + plotfile
+			Print #logf, "Found plotfile: " + plotfile
 		Else
 			Debug.Print "Creating plotfile: " + plotfile
-			Print #1, "Creating plotfile: " + plotfile
+			Print #logf, "Creating plotfile: " + plotfile
 			' create plot object
 			Set Plot = surf.Documents.Add(srfDocPlot)
 			Set PageSetup = Plot.PageSetup
@@ -133,10 +149,10 @@ Sub Main
 			kmlfile = kmldir + filename + "_grid.kml"
 			If Dir(kmlfile) <> "" Then
 				Debug.Print "Found kmlfile: " + kmlfile
-				Print #1, "Found kmlfile: " + kmlfile
+				Print #logf, "Found kmlfile: " + kmlfile
 			Else
 				Debug.Print "Creating kmlfile: " + kmlfile
-				Print #1, "Creating kmlfile: " + kmlfile
+				Print #logf, "Creating kmlfile: " + kmlfile
 				' hide axis for kml export
 				For Each axis In  MapFrame.Axes
 					axis.Visible = False
@@ -178,30 +194,30 @@ Sub Main
 
 		datafile = Dir()
 		Debug.Print ""
-		Print #1, ""
+		Print #logf, ""
 
 	Next
 
 	Debug.Print "Gamma processing completed"
     Debug.Print ""
-	Print #1, "Gamma processing completed"
-    Print #1, ""
+	Print #logf, "Gamma processing completed"
+    Print #logf, ""
 
 	Debug.Print "Processing RAP"
 	Debug.Print ""
-    Print #1, "Processing RAP"
-    Print #1, ""
+    Print #logf, "Processing RAP"
+    Print #logf, ""
 
 	folders = GetDirs(rapdir)
 	For Each folder In folders
 		Debug.Print "Found folder: " + folder
-		Print #1, "Found folder: " + folder
+		Print #logf, "Found folder: " + folder
 		datadir = rapdir + folder + "\Data_Cor\"
 		datafiles = GetFiles(datadir, "*frn.txt")
 
 		For Each datafile In datafiles
 			Debug.Print "Found datafile: " + datafile
-			Print #1, "Found datafile: " + datafile
+			Print #logf, "Found datafile: " + datafile
 
 			' open datafile
 			Set wks = surf.Documents.Open(datadir + datafile)
@@ -249,10 +265,10 @@ Sub Main
 			gridfile = datadir + filename + ".grd"
 			If Dir(gridfile) <> "" Then
 				Debug.Print "Found gridfile: " + gridfile
-				Print #1, "Found gridfile: " + gridfile
+				Print #logf, "Found gridfile: " + gridfile
 			Else
 				Debug.Print "Creating gridfile: " + gridfile
-				Print #1, "Creating gridfile: " + gridfile
+				Print #logf, "Creating gridfile: " + gridfile
 				NumCols = 2 * (xMax - xMin) / xInt + 1
 				surf.GridData6(DataFile:= datadir + datafile,  xCol:=1, yCol:=2, zCol:=3, NumCols:=NumCols, NumRows:=101, xMin:=xMin, xMax:=xMax, yMin:=yMin, yMax:=yMax, Algorithm:=srfKriging, ShowReport:=False, OutGrid:=gridfile)
 			End If
@@ -260,10 +276,10 @@ Sub Main
 			plotfile = surfdir + folder + " " + Split(filename, "frn")(0) + ".srf"
 			If Dir(plotfile) <> "" Then
 				Debug.Print "Found plotfile: " + plotfile
-				Print #1, "Found plotfile: " + plotfile
+				Print #logf, "Found plotfile: " + plotfile
 			Else
 				Debug.Print "Creating plotfile: " + plotfile
-				Print #1, "Creating plotfile: " + plotfile
+				Print #logf, "Creating plotfile: " + plotfile
 				' create plot object
 				Set Plot = surf.Documents.Add(srfDocPlot)
 				Set PageSetup = Plot.PageSetup
@@ -446,23 +462,80 @@ Sub Main
 		Next
 
 		Debug.Print ""
-		Print #1, ""
+		Print #logf, ""
 
 	Next
 
     Debug.Print "RAP processing completed"
-	Print #1, "RAP processing completed"
-	Print #1, "End Log - " + Str(Now)
-	Print #1, "************************************************"
+	Print #logf, "RAP processing completed"
+	Print #logf
+	Print #logf, "End Log - " + getNowStr()
+	Print #logf, logdiv
 
 	' close logfile
-	Close #1
+	Close #logf
 
 	If Not leaveopen Then
 		surf.Quit
 	End If
 
 End Sub
+
+' returns the value of the config parameter from the config array
+Function getConfigVal(key As String, configArray As Variant, dtype As String) As Variant
+	getConfigVal = Null
+	For Each pair In configArray
+		If pair(0) = key Then
+			If dtype = "str" Then
+				getConfigVal = pair(1)
+			ElseIf dtype = "val" Then
+				getConfigVal = Val(pair(1))
+			ElseIf dtype = "bool" Then
+				getConfigVal = CBool(pair(1))
+			End If
+			Exit For
+		End If
+	Next
+End Function
+
+' returns an array containing the values from the config file
+Function readConfigFile(cwd As String) As Variant
+	Dim configArray() As Variant
+	index = 0
+
+    ' Specify the path to the configuration file 
+    configFile = cwd + "\config.txt"
+
+    ' Check if the file exists 
+    If Dir(configFile) = "" Then
+        MsgBox "Config file not found!" 
+        Exit Function
+    End If 
+
+    ' Open and read file
+    cfile = FreeFile
+    Open configFile For Input As #cfile
+    Do While Not EOF(cfile)
+        ' Read the entire line into the variable 
+        Line Input #cfile, linevals
+
+        ' Split the line into key-value pairs 
+        keyValue = Split(linevals, "=")
+
+        ' Process key-value pairs 
+        If UBound(keyValue) = 1 Then
+			ReDim Preserve configArray(index)
+			configArray(index) = Array(Trim(keyValue(0)), Trim(keyValue(1)))
+			index = index + 1
+        End If
+    Loop
+	Set readConfigFile = configArray
+End Function
+
+' returns the current date/time as a formatted string
+Function getNowStr()
+	getNowStr = Format(Now, "yyyy.mm.dd hh:nn:ss")
+End Function
 
 ' returns an array of the folder names in path
 Function GetDirs(path As String) As Variant
