@@ -7,3 +7,4 @@ __pycache__
 *_.py
 *_.bas
 *.json
+*.code-workspace
