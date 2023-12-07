@@ -1,5 +1,5 @@
 dir = C:\Projects\Testing
-scripter = C:\Program Files\Golden Software\Surfer\Scripter.exe
+surferdir = C:\Program Files\Golden Software\Surfer
 
 overwrite = False
 writedeleted = false
