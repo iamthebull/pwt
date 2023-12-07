@@ -1,0 +1,42 @@
+dir = C:\Projects\Testing
+scripter = C:\Program Files\Golden Software\Surfer\Scripter.exe
+
+overwrite = False
+writedeleted = false
+
+latreferror = 0.1
+lonreferror = 0.1
+latpterror = 0.01
+lonpterror = 0.01
+
+outputGPXTrk = false
+outputGPXWp = false
+outputKMLTrk = true
+outputKMLWp = true
+
+background = True
+leaveopen = False
+pageWidth = 17
+pageHeight = 11
+
+mapheight = 8
+maptop = mapheight + 1
+mapmargin = 1
+widescale = 4
+
+scaletop = maptop - 1
+scalecellwidth = 1.75
+scaleoffset = 0.2
+
+spacecellwidth = 1
+
+showtopaxislabels = True
+showbottomaxislabels = True
+showleftaxislabels = True
+showrightaxislabels = False
+
+showtopaxistitle = False
+showbottomaxistitle = True
+showleftaxistitle = True
+showrightaxistitle = False
+axistitleoffset = -0.05
