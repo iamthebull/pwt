@@ -1,29 +1,34 @@
 dir = 
+titletext = My Customer ~ PW Drilling Project
+operator = F. Name - PWT
 surferdir = C:\Program Files\Golden Software\Surfer
 
-overwrite = True
+overwrite = false
 writedeleted = true
 
 laterror = 0.01
 lonerror = 0.01
 
-outputGPXTrk = false
-outputGPXWp = false
+outputGPXTrk = true
+outputGPXWp = true
 outputKMLTrk = true
 outputKMLWp = true
 
-background = True
-leaveopen = False
-pageWidth = 17
-pageHeight = 11
+background = true
+leaveopen = false
+pagewidth = 17
+pageheight = 11
 
-mapheight = 8
-maptop = mapheight + 1
-mapmargin = 1
+numcolsperpoint = 2
+numrows = 201
+
+mapheight = 7.5
+mapbottommargin = 0.25
+mapsidemargin = 0.25
 widescale = 4
 
-scaletop = maptop - 1
-scalecellwidth = 1.75
+scaletopmargin = 0.5
+scalesidemargin = 0.25
 scaleoffset = 0.2
 
 spacecellwidth = 1
