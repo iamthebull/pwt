@@ -7,6 +7,7 @@ Sub Main
 
 	' configuration settings
 	pdir = getConfigVal("dir", configArray, "str")
+	overwrite = getConfigVal("overwrite", configArray, "bool")
 	background = getConfigVal("background", configArray, "bool")
 	leaveopen = getConfigVal("leaveopen", configArray, "bool")
 	pageWidth = getConfigVal("pageWidth", configArray, "val")
@@ -97,21 +98,18 @@ Sub Main
 		Print #logf, "Found datafile: " + datafiledir + datafile
 		filename = Split(datafile, ".")(0)
 		gridfile = datafiledir + filename + ".grd"
-		If Dir(gridfile) <> "" Then
-			Debug.Print "Found gridfile: " + gridfile
-			Print #logf, "Found gridfile: " + gridfile
-		Else
+		If Dir(gridfile) = "" or overwrite Then
 			Debug.Print "Creating grid file: " + gridfile
 			Print #logf, "Creating grid file: " + gridfile
 			' create grid file
-			surf.GridData(DataFile:= datafiledir + datafile,  xCol:=4, yCol:=3, zCol:=2, Algorithm:=srfKriging, ShowReport:=False, OutGrid:=gridfile)
+			surf.GridData6(DataFile:= datafiledir + datafile,  xCol:=4, yCol:=3, zCol:=2, Algorithm:=srfKriging, ShowReport:=False, OutGrid:=gridfile)
+		Else
+			Debug.Print "Found gridfile: " + gridfile
+			Print #logf, "Found gridfile: " + gridfile
 		End If
 
 		plotfile = surfdir + filename + ".srf"
-		If Dir(plotfile) <> "" Then
-			Debug.Print "Found plotfile: " + plotfile
-			Print #logf, "Found plotfile: " + plotfile
-		Else
+		If Dir(plotfile) = "" or overwrite Then
 			Debug.Print "Creating plotfile: " + plotfile
 			Print #logf, "Creating plotfile: " + plotfile
 			' create plot object
@@ -143,10 +141,7 @@ Sub Main
 			End With
 
 			kmlfile = kmldir + filename + "_grid.kml"
-			If Dir(kmlfile) <> "" Then
-				Debug.Print "Found kmlfile: " + kmlfile
-				Print #logf, "Found kmlfile: " + kmlfile
-			Else
+			If Dir(kmlfile) = "" or overwrite Then
 				Debug.Print "Creating kmlfile: " + kmlfile
 				Print #logf, "Creating kmlfile: " + kmlfile
 				' hide axis for kml export
@@ -161,6 +156,9 @@ Sub Main
 					axis.Visible = True
 				Next
 				ContourLayer.ColorScale.Visible = True
+			Else
+				Debug.Print "Found kmlfile: " + kmlfile
+				Print #logf, "Found kmlfile: " + kmlfile
 			End If
 
 			' add post map
@@ -186,6 +184,9 @@ Sub Main
 
 			' save the plot
 			Plot.SaveAs(FileName:=plotfile)
+		Else
+			Debug.Print "Found plotfile: " + plotfile
+			Print #logf, "Found plotfile: " + plotfile
 		End If
 
 		datafile = Dir()
@@ -215,65 +216,77 @@ Sub Main
 			Debug.Print "Found datafile: " + datafile
 			Print #logf, "Found datafile: " + datafile
 
-			' open datafile
-			Set wks = surf.Documents.Open(datadir + datafile)
-			rowCount = wks.Columns(1).RowCount
-			samples = wks.cells(Row:=1,Col:=1).Value
-			xMin = wks.cells(2,1).Value
-			xMax = wks.cells(rowCount,Col:=1).Value
-			xInt = wks.cells(samples+3,1).Value
-			yMin = wks.cells(2,2).Value
-			yMax = wks.cells(samples+1,2).Value
-			yInt = wks.cells(3,2).Value - yMin
-
-			scalingratio = (yMax - yMin) / mapheight
-			mapwidth = (xMax - xMin) / scalingratio
-			mapcellwidth = mapwidth + mapmargin
-			widemapwidth = mapwidth * widescale
-			widemapcellwidth = widemapwidth + mapmargin
-			cellswidth = 2 * mapcellwidth + 2 * scalecellwidth + widemapcellwidth + spacecellwidth
-			cellsleft = (pagewidth - cellswidth) / 2
-
-			scalecell1left = cellsleft
-			scalecell1center = scalecell1left + scalecellwidth / 2
-			scalecell1right = scalecell1left + scalecellwidth
-
-			mapcell1left = scalecell1right
-			mapcell1center = mapcell1left + mapcellwidth / 2
-			mapcell1right = mapcell1left + mapcellwidth
-
-			mapcell2left = mapcell1right + spacecellwidth
-			mapcell2center = mapcell2left + mapcellwidth / 2
-			mapcell2right = mapcell2left + mapcellwidth
-
-			scalecell2left = mapcell2right
-			scalecell2center = scalecell2left + scalecellwidth / 2
-			scalecell2right = scalecell2left + scalecellwidth
-
-			mapcell3left = scalecell2right
-			mapcell3center = mapcell3left + widemapcellwidth / 2
-			mapcell3right = mapcell3left + widemapcellwidth
-
-			' close datafile
-			wks.Close
-
 			filename = Split(datafile, ".")(0)
 			gridfile = datadir + filename + ".grd"
-			If Dir(gridfile) <> "" Then
+			If (Dir(gridfile) = "") or overwrite Then
+				creategridfile = True
+			Else
+				creategridfile = False
 				Debug.Print "Found gridfile: " + gridfile
 				Print #logf, "Found gridfile: " + gridfile
+			End If
+
+			plotfile = surfdir + folder + " " + Split(filename, "frn")(0) + ".srf"
+			If (Dir(plotfile) <> "") or overwrite Then
+				createplotfile = True
 			Else
+				createplotfile = False
+				Debug.Print "Found plotfile: " + plotfile
+				Print #logf, "Found plotfile: " + plotfile
+			End If
+
+			If creategridfile or createplotfile Then
+				' open datafile
+				Set wks = surf.Documents.Open(datadir + datafile)
+				rowCount = wks.Columns(1).RowCount
+				samples = wks.cells(Row:=1,Col:=1).Value
+				xMin = wks.cells(2,1).Value
+				xMax = wks.cells(rowCount,Col:=1).Value
+				xInt = wks.cells(samples+3,1).Value
+				yMin = wks.cells(2,2).Value
+				yMax = wks.cells(samples+1,2).Value
+				yInt = wks.cells(3,2).Value - yMin
+
+				scalingratio = (yMax - yMin) / mapheight
+				mapwidth = (xMax - xMin) / scalingratio
+				mapcellwidth = mapwidth + mapmargin
+				widemapwidth = mapwidth * widescale
+				widemapcellwidth = widemapwidth + mapmargin
+				cellswidth = 2 * mapcellwidth + 2 * scalecellwidth + widemapcellwidth + spacecellwidth
+				cellsleft = (pagewidth - cellswidth) / 2
+
+				scalecell1left = cellsleft
+				scalecell1center = scalecell1left + scalecellwidth / 2
+				scalecell1right = scalecell1left + scalecellwidth
+
+				mapcell1left = scalecell1right
+				mapcell1center = mapcell1left + mapcellwidth / 2
+				mapcell1right = mapcell1left + mapcellwidth
+
+				mapcell2left = mapcell1right + spacecellwidth
+				mapcell2center = mapcell2left + mapcellwidth / 2
+				mapcell2right = mapcell2left + mapcellwidth
+
+				scalecell2left = mapcell2right
+				scalecell2center = scalecell2left + scalecellwidth / 2
+				scalecell2right = scalecell2left + scalecellwidth
+
+				mapcell3left = scalecell2right
+				mapcell3center = mapcell3left + widemapcellwidth / 2
+				mapcell3right = mapcell3left + widemapcellwidth
+
+				' close datafile
+				wks.Close
+			End If
+
+			If creategridfile Then
 				Debug.Print "Creating gridfile: " + gridfile
 				Print #logf, "Creating gridfile: " + gridfile
 				NumCols = 2 * (xMax - xMin) / xInt + 1
 				surf.GridData6(DataFile:= datadir + datafile,  xCol:=1, yCol:=2, zCol:=3, NumCols:=NumCols, NumRows:=101, xMin:=xMin, xMax:=xMax, yMin:=yMin, yMax:=yMax, Algorithm:=srfKriging, ShowReport:=False, OutGrid:=gridfile)
 			End If
 
-			plotfile = surfdir + folder + " " + Split(filename, "frn")(0) + ".srf"
-			If Dir(plotfile) <> "" Then
-				Debug.Print "Found plotfile: " + plotfile
-				Print #logf, "Found plotfile: " + plotfile
-			Else
+			If createplotfile Then
 				Debug.Print "Creating plotfile: " + plotfile
 				Print #logf, "Creating plotfile: " + plotfile
 				' create plot object
