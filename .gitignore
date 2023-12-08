@@ -3,6 +3,7 @@
 __pycache__
 *.kml
 *.gpx
+*.grd
 *.srf
 *_.py
 *_.bas
