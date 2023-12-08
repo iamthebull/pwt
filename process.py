@@ -12,30 +12,56 @@ gpsdatetimeformat = gpsdateformat + gpstimeformat
 
 class invalidrow(Exception): pass
 
+class FileWriter:
+	def __init__(self, path, filename, mode='w'):
+		self.path = path
+		self.filename = filename
+		self.mode = mode
+		self.file = None
+
+	def open(self):
+		if not self.file:
+			self.file = open(os.path.join(self.path, self.filename), self.mode)
+	
+	def close(self):
+		if self.file:
+			self.file.close()
+			self.file = None
+
+	def write(self, line=""):
+		self.file.write(line)
+
+	def writeln(self, line=""):
+		self.file.write(line + '\n')
+
+	def setmode(self, mode):
+		self.mode = mode
+
 pdir = os.path.dirname(os.path.realpath(__file__))
 
 now = datetime.now()
 
-logfile = open(os.path.join(pdir, "process.log"), "w")
-def writelog(line='', logfile=logfile): logfile.write(line + '\n')
+lfw = FileWriter(pdir, "process.log")
+lfw.open()
+
 logdiv = "*"*60
-writelog(logdiv)
-writelog("%s - Processing - %s" % (os.path.basename(__file__), now.strftime("%Y.%m.%d %H:%M:%S")))
-writelog()
+lfw.writeln(logdiv)
+lfw.writeln("%s - Processing - %s" % (os.path.basename(__file__), now.strftime("%Y.%m.%d %H:%M:%S")))
+lfw.writeln()
 
 configdata = {}
 configfile = os.path.join(pdir, "config.txt")
 if os.path.exists(configfile):
-	writelog("Reading config - %s" % configfile)
-	writelog()
+	lfw.writeln("Reading config - %s" % configfile)
+	lfw.writeln()
 	with open(configfile, 'r', newline='') as cfgfile:
 		creader = csv.reader(cfgfile, delimiter='=')
 		for row in creader:
 			if len(row) == 2 and row[0][0] != "#":
 				configdata[row[0].strip()] = row[1].strip()
 else:
-	writelog("Config file not found - using defaults")
-	writelog()
+	lfw.writeln("Config file not found - using defaults")
+	lfw.writeln()
 msg = "Working directory: ~"
 if not "dir" in configdata:
 	cwd = pdir
@@ -47,7 +73,7 @@ else:
 		if not os.path.exists(cwd):
 			os.makedirs(cwd)
 			msg += " was created"
-writelog(msg.replace("~", cwd))
+lfw.writeln(msg.replace("~", cwd))
 
 overwrite = configdata["overwrite"].lower() == 'true' if "overwrite" in configdata else False
 writedeleted = configdata["writedeleted"].lower() == 'true' if "writedeleted" in configdata else False
@@ -60,7 +86,7 @@ outputGPXWp = configdata["outputGPXWp"].lower() == 'true' if "outputGPXWp" in co
 outputKMLTrk = configdata["outputKMLTrk"].lower() == 'true' if "outputKMLTrk" in configdata else True
 outputKMLWp = configdata["outputKMLWp"].lower() == 'true' if "outputKMLWp" in configdata else True
 
-writelog()
+lfw.writeln()
 
 gammadir = os.path.join(cwd, "Gamma")
 gpxdir = os.path.join(cwd, "GPX")
@@ -80,21 +106,21 @@ for fullname in filenames:
 		datafiles += [fullname]
 datafiles.sort()
 
-writelog("Found %s data files:" % len(datafiles))
+lfw.writeln("Found %s data files:" % len(datafiles))
 for f in datafiles:
-	writelog("    %s" % os.path.join(gammadir, f))
-writelog()
+	lfw.writeln("    %s" % os.path.join(gammadir, f))
+lfw.writeln()
 
 for datafile in datafiles:
-	writelog("Processing data file: %s" % os.path.join(gammadir, datafile))
+	lfw.writeln("Processing data file: %s" % os.path.join(gammadir, datafile))
 	filename = os.path.splitext(datafile)[0]
 	wpath = os.path.join(gammadir, '%s_Edit.txt' % filename)
 	if os.path.exists(wpath) and not overwrite:
-		writelog("Found edit file: %s" % wpath)
-		writelog()
+		lfw.writeln("Found edit file: %s" % wpath)
+		lfw.writeln()
 		continue
 	else:
-		writelog("Generating edit file: %s" % wpath)
+		lfw.writeln("Generating edit file: %s" % wpath)
 
 	rawrowcount = 0
 	rowcount = 0
@@ -118,8 +144,8 @@ for datafile in datafiles:
 	if writedeleted:
 		ipath = os.path.join(gammadir, '%s_del.txt' % filename)
 		ifile = open(ipath, 'w')
-		writelog("Generating delete file: %s" % ipath)
-	writelog()
+		lfw.writeln("Generating delete file: %s" % ipath)
+	lfw.writeln()
 
 	for row in freader:
 		rawrowcount += 1
@@ -127,7 +153,7 @@ for datafile in datafiles:
 		if rowlen == 0:
 			pass # ignore empty rows
 		elif rowlen == 1:
-			writelog('%s' % row[0])
+			lfw.writeln('%s' % row[0])
 			if rawrowcount == 4:
 				rawdatestr = row[0][1:]
 			if rawrowcount == 5:
@@ -214,11 +240,11 @@ for datafile in datafiles:
 
 				validgap = rowcount - prevvalidrow -1
 				if validgap > 0:
-					writelog('%s points deleted' % validgap)
+					lfw.writeln('%s points deleted' % validgap)
 				else:
 					wpgap = wp - prevwp - 1
 					if wpgap > 0:
-						writelog('Waypoint gap - %s points (%s to %s)' % (wpgap, prevwp, wp))
+						lfw.writeln('Waypoint gap - %s points (%s to %s)' % (wpgap, prevwp, wp))
 
 				prevwp = wp
 				prevvalidrow = rowcount
@@ -231,12 +257,12 @@ for datafile in datafiles:
 	# write stats to logfile
 	validrowspercent = validrowcount / rowcount * 100
 	invalidrowspercent = invalidrowcount / rowcount * 100
-	writelog('Data points: %s' % rowcount)
-	writelog('Valid data points: %s (%.1f%%)' % (validrowcount, validrowspercent))
-	writelog('Invalid data points: %s (%.1f%%)' % (invalidrowcount, invalidrowspercent))
-	writelog('Latitude (min, max, diff): %.6f, %.6f, %.6f' %(stats["minlat"], stats["maxlat"], abs(stats["maxlat"] - stats["minlat"])))
-	writelog('Longitude (min, max, diff): %.6f, %.6f, %.6f' %(stats["minlon"], stats["maxlon"], abs(stats["maxlon"] - stats["minlon"])))
-	writelog()
+	lfw.writeln('Data points: %s' % rowcount)
+	lfw.writeln('Valid data points: %s (%.1f%%)' % (validrowcount, validrowspercent))
+	lfw.writeln('Invalid data points: %s (%.1f%%)' % (invalidrowcount, invalidrowspercent))
+	lfw.writeln('Latitude (min, max, diff): %.6f, %.6f, %.6f' %(stats["minlat"], stats["maxlat"], abs(stats["maxlat"] - stats["minlat"])))
+	lfw.writeln('Longitude (min, max, diff): %.6f, %.6f, %.6f' %(stats["minlon"], stats["maxlon"], abs(stats["maxlon"] - stats["minlon"])))
+	lfw.writeln()
 
 	dfile.close()
 	wfile.close()
@@ -245,44 +271,52 @@ for datafile in datafiles:
 	if outputGPXTrk:
 		gpxfile = os.path.join(gpxdir, '%s_Edit_trk.gpx' % filename)
 		if os.path.exists(gpxfile) and not overwrite:
-			writelog("Found GPX file: %s" % gpxfile)
+			lfw.writeln("Found GPX file: %s" % gpxfile)
 		else:
-			writelog("Generating GPX file: %s" % gpxfile)
+			lfw.writeln("Generating GPX file: %s" % gpxfile)
 			buildGPXTrk(gpxfile, rawdatetime, addpoints, stats, gpsdatetimeformat)
 
 	if outputGPXWp:
 		gpxfile = os.path.join(gpxdir, '%s_Edit_wp.gpx' % filename)
 		if os.path.exists(gpxfile) and not overwrite:
-			writelog("Found GPX file: %s" % gpxfile)
+			lfw.writeln("Found GPX file: %s" % gpxfile)
 		else:
-			writelog("Generating GPX file: %s" % gpxfile)
+			lfw.writeln("Generating GPX file: %s" % gpxfile)
 			buildGPXWp(gpxfile, rawdatetime, addpoints, gpsdatetimeformat)
 	
 	if outputKMLTrk:
 		kmlfile = os.path.join(kmldir, '%s_Edit_trk.kml' % filename)
 		if os.path.exists(kmlfile) and not overwrite:
-			writelog("Found KML file: %s" % kmlfile)
+			lfw.writeln("Found KML file: %s" % kmlfile)
 		else:
-			writelog("Generating KML file: %s" % kmlfile)
+			lfw.writeln("Generating KML file: %s" % kmlfile)
 			buildKMLTrk(kmlfile, addpoints, stats, gpsdatetimeformat)
 
 	if outputKMLWp:
 		kmlfile = os.path.join(kmldir, '%s_Edit_wp.kml' % filename)
 		if os.path.exists(kmlfile) and not overwrite:
-			writelog("Found KML file: %s" % kmlfile)
+			lfw.writeln("Found KML file: %s" % kmlfile)
 		else:
-			writelog("Generating KML file: %s" % kmlfile)
+			lfw.writeln("Generating KML file: %s" % kmlfile)
 			buildKMLWp(kmlfile, addpoints, stats, gpsdatetimeformat)
 	
-	writelog()
+	lfw.writeln()
 
-# combine KML files
-combineKML(kmldir, overwrite=overwrite, writelog=writelog)
-
-writelog()
-writelog("Processing completed - %s" % datetime.now().strftime("%Y.%m.%d %H:%M:%S"))
-writelog(logdiv)
-logfile.close()
+lfw.close()
 
 if "surferdir" in configdata:
 	subprocess.run([os.path.join(configdata["surferdir"],"scripter.exe"), "-x", os.path.join(pdir,"process.bas"), cwd])
+
+lfw.setmode('a')
+lfw.open()
+
+# combine KML files
+combineKML(kmldir, overwrite=overwrite, writelog=lfw.writeln)
+
+lfw.writeln()
+lfw.writeln("Processing completed - %s" % datetime.now().strftime("%Y.%m.%d %H:%M:%S"))
+lfw.writeln(logdiv)
+lfw.close()
+
+# if "surferdir" in configdata:
+# 	subprocess.run([os.path.join(configdata["surferdir"],"scripter.exe"), "-x", os.path.join(pdir,"process.bas"), cwd])
