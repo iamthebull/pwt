@@ -10,17 +10,19 @@ Sub Main
 	overwrite = getConfigVal("overwrite", configArray, "bool")
 	background = getConfigVal("background", configArray, "bool")
 	leaveopen = getConfigVal("leaveopen", configArray, "bool")
-	pageWidth = getConfigVal("pageWidth", configArray, "val")
-	pageHeight = getConfigVal("pageHeight", configArray, "val")
+	pagewidth = getConfigVal("pagewidth", configArray, "val")
+	pageheight = getConfigVal("pageheight", configArray, "val")
+	numcolsperpoint = getConfigVal("numcolsperpoint", configArray, "val")
+	numrows = getConfigVal("numrows", configArray, "val")
 
 	' map size
 	mapheight = getConfigVal("mapheight", configArray, "val")
-	maptop = mapheight + 1
-	mapmargin = getConfigVal("mapmargin", configArray, "val")
+	mapbottommargin = getConfigVal("mapbottommargin", configArray, "val")
+	mapsidemargin = getConfigVal("mapsidemargin", configArray, "val")
 	widescale = getConfigVal("widescale", configArray, "val")
 	' scale size
-	scaletop = maptop - 1
-	scalecellwidth = getConfigVal("scalecellwidth", configArray, "val")
+	scaletopmargin = getConfigVal("scaletopmargin", configArray, "val")
+	scalesidemargin = getConfigVal("scalesidemargin", configArray, "val")
 	scaleoffset = getConfigVal("scaleoffset", configArray, "val")
 	' space size
 	spacecellwidth = getConfigVal("spacecellwidth", configArray, "val")
@@ -115,8 +117,8 @@ Sub Main
 			' create plot object
 			Set Plot = surf.Documents.Add(srfDocPlot)
 			Set PageSetup = Plot.PageSetup
-			PageSetup.Width = pageWidth
-			PageSetup.Height = pageHeight
+			PageSetup.Width = pagewidth
+			PageSetup.Height = pageheight
 	
 			' create shapes object
 			Set Shapes = Plot.Shapes
@@ -247,34 +249,6 @@ Sub Main
 				yMax = wks.cells(samples+1,2).Value
 				yInt = wks.cells(3,2).Value - yMin
 
-				scalingratio = (yMax - yMin) / mapheight
-				mapwidth = (xMax - xMin) / scalingratio
-				mapcellwidth = mapwidth + mapmargin
-				widemapwidth = mapwidth * widescale
-				widemapcellwidth = widemapwidth + mapmargin
-				cellswidth = 2 * mapcellwidth + 2 * scalecellwidth + widemapcellwidth + spacecellwidth
-				cellsleft = (pagewidth - cellswidth) / 2
-
-				scalecell1left = cellsleft
-				scalecell1center = scalecell1left + scalecellwidth / 2
-				scalecell1right = scalecell1left + scalecellwidth
-
-				mapcell1left = scalecell1right
-				mapcell1center = mapcell1left + mapcellwidth / 2
-				mapcell1right = mapcell1left + mapcellwidth
-
-				mapcell2left = mapcell1right + spacecellwidth
-				mapcell2center = mapcell2left + mapcellwidth / 2
-				mapcell2right = mapcell2left + mapcellwidth
-
-				scalecell2left = mapcell2right
-				scalecell2center = scalecell2left + scalecellwidth / 2
-				scalecell2right = scalecell2left + scalecellwidth
-
-				mapcell3left = scalecell2right
-				mapcell3center = mapcell3left + widemapcellwidth / 2
-				mapcell3right = mapcell3left + widemapcellwidth
-
 				' close datafile
 				wks.Close
 			End If
@@ -282,8 +256,8 @@ Sub Main
 			If creategridfile Then
 				Debug.Print "Creating gridfile: " + gridfile
 				Print #logf, "Creating gridfile: " + gridfile
-				NumCols = 2 * (xMax - xMin) / xInt + 1
-				surf.GridData6(DataFile:= datadir + datafile,  xCol:=1, yCol:=2, zCol:=3, NumCols:=NumCols, NumRows:=101, xMin:=xMin, xMax:=xMax, yMin:=yMin, yMax:=yMax, Algorithm:=srfKriging, ShowReport:=False, OutGrid:=gridfile)
+				NumCols = numcolsperpoint * (xMax - xMin) / xInt + 1
+				surf.GridData6(DataFile:= datadir + datafile,  xCol:=1, yCol:=2, zCol:=3, NumCols:=NumCols, NumRows:=numrows, xMin:=xMin, xMax:=xMax, yMin:=yMin, yMax:=yMax, Algorithm:=srfKriging, ShowReport:=False, OutGrid:=gridfile)
 			End If
 
 			If createplotfile Then
@@ -294,7 +268,8 @@ Sub Main
 				Set PageSetup = Plot.PageSetup
 				PageSetup.Width = pagewidth
 				PageSetup.Height = pageheight
-		
+				scalingratio = (yMax - yMin) / mapheight
+
 				' create shapes object
 				Set Shapes = Plot.Shapes
 
@@ -349,25 +324,10 @@ Sub Main
 					.TitleFont.Size = 12
 				End With
 
-				' position contour map
+				mf1height = MapFrame1.Height
 				mf1width = MapFrame1.Width
-				map1left = mapcell1center - mf1width / 2
-				With MapFrame1
-					.Selected = True
-					Plot.Selection.Left = map1left
-					Plot.Selection.Top = maptop
-					.Selected = False
-				End With
-
-				' position color scale
+				cs1height = ColorScale1.Height
 				cs1width = ColorScale1.Width
-				scale1left = scalecell1center - cs1width / 2 + scaleoffset
-				With ColorScale1
-					.Selected = True
-					Plot.Selection.Left = scale1left
-					Plot.Selection.Top = scaletop
-					.Selected = False
-				End With
 
 				' add color releif map
 				Set MapFrame2 = Plot.Shapes.AddColorReliefMap(GridFileName:=gridfile)
@@ -416,25 +376,10 @@ Sub Main
 					.TitleFont.Size = 12
 				End With
 
-				' position color relief map
+				mf2height = MapFrame2.Height
 				mf2width = MapFrame2.Width
-				map2left = mapcell2center - mf2width / 2
-				With MapFrame2
-					.Selected = True
-					Plot.Selection.Left = map2left
-					Plot.Selection.Top = maptop
-					.Selected = False
-				End With
-
-				' position color scale
+				cs2height = ColorScale2.Height
 				cs2width = ColorScale2.Width
-				scale2left = scalecell2center - cs2width / 2 + scaleoffset
-				With ColorScale2
-					.Selected = True
-					Plot.Selection.Left = scale2left
-					Plot.Selection.Top = scaletop
-					.Selected = False
-				End With
 
 				' make a wide copy of color relief map
 				MapFrame2.Selected = True
@@ -449,18 +394,85 @@ Sub Main
 					End If
 				Next
 
-				' position color relief wide
+				mf3height = mapframe3.Height
 				mf3width = MapFrame3.Width
-				map3left = mapcell3center - mf3width / 2
-				Plot.Selection.Left = map3left
-				Plot.Selection.Top = maptop
+
+				maptop = mf1height + mapbottommargin
+				mapwidth = (xMax - xMin) / scalingratio
+				mapcellwidth = mf1width + mapsidemargin
+				widemapcellwidth = mf3width + mapsidemargin
+				scaletop = maptop - scaletopmargin
+				scalecellwidth = cs1width + scalesidemargin
+				cellswidth = 2 * mapcellwidth + 2 * scalecellwidth + widemapcellwidth + spacecellwidth
+				cellsleft = (pagewidth - cellswidth) / 2
+
+				scalecell1left = cellsleft
+				scalecell1center = scalecell1left + scalecellwidth / 2
+				scalecell1right = scalecell1left + scalecellwidth
+
+				mapcell1left = scalecell1right
+				mapcell1center = mapcell1left + mapcellwidth / 2
+				mapcell1right = mapcell1left + mapcellwidth
+
+				mapcell2left = mapcell1right + spacecellwidth
+				mapcell2center = mapcell2left + mapcellwidth / 2
+				mapcell2right = mapcell2left + mapcellwidth
+
+				scalecell2left = mapcell2right
+				scalecell2center = scalecell2left + scalecellwidth / 2
+				scalecell2right = scalecell2left + scalecellwidth
+
+				mapcell3left = scalecell2right
+				mapcell3center = mapcell3left + widemapcellwidth / 2
+				mapcell3right = mapcell3left + widemapcellwidth
+
 				Plot.Selection.DeselectAll
+				map1left = mapcell1center - mf1width / 2
+				With MapFrame1
+					.Selected = True
+					Plot.Selection.Left = map1left
+					Plot.Selection.Top = maptop
+					.Selected = False
+				End With
+
+				scale1left = scalecell1center - cs1width / 2 + scaleoffset
+				With ColorScale1
+					.Selected = True
+					Plot.Selection.Left = scale1left
+					Plot.Selection.Top = scaletop
+					.Selected = False
+				End With
+
+				map2left = mapcell2center - mf2width / 2
+				With MapFrame2
+					.Selected = True
+					Plot.Selection.Left = map2left
+					Plot.Selection.Top = maptop
+					.Selected = False
+				End With
+
+				scale2left = scalecell2center - cs2width / 2 + scaleoffset
+				With ColorScale2
+					.Selected = True
+					Plot.Selection.Left = scale2left
+					Plot.Selection.Top = scaletop
+					.Selected = False
+				End With
+
+				' position color relief wide
+				map3left = mapcell3center - mf3width / 2
+				With MapFrame3
+					.Selected = True
+					Plot.Selection.Left = map3left
+					Plot.Selection.Top = maptop
+					.Selected = False
+				End With
 
 				' add title text box
 				title = "\fs180 " + projectName + "\n "
 				title = title + "\fs160 " + customerName + "\n "
 				title = title + "\fs140 " + folder + " -" + Str(xMax - xMin) + "m @" + Str(xInt) + "m spacing - Depth:" + Str(yMax) + "m"
-				Set TitleBox = Shapes.AddText(x:=8.5, y:=10.75, Text:=title)
+				Set TitleBox = Shapes.AddText(x:=pagewidth/2, y:=pageheight-0.25, Text:=title)
 				TitleBox.Font.hAlign = srfTACenter
 
 				' save the plot
