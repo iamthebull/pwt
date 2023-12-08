@@ -227,7 +227,7 @@ Sub Main
 			End If
 
 			plotfile = surfdir + folder + " " + Split(filename, "frn")(0) + ".srf"
-			If (Dir(plotfile) <> "") or overwrite Then
+			If (Dir(plotfile) = "") or overwrite Then
 				createplotfile = True
 			Else
 				createplotfile = False
