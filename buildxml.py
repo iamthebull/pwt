@@ -292,7 +292,3 @@ def combineKML(kmldir, overwrite=False, writelog=None):
 		for docname in sorted(docs[folder]):
 			folderElement.append(docs[folder][docname])
 	writeTree(root2, os.path.join(kmldir, "all.kml"), regns=True)
-
-if __name__ == '__main__':
-	kmlpath = "C:\\Projects\\Testing\\KML"
-	combineKML(kmlpath,True)
