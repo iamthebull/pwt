@@ -16,7 +16,7 @@ pdir = os.path.dirname(os.path.realpath(__file__))
 
 now = datetime.now()
 
-logfile = open(os.path.join(pdir, "process.log"), "a")
+logfile = open(os.path.join(pdir, "process.log"), "w")
 def writelog(line='', logfile=logfile): logfile.write(line + '\n')
 logdiv = "*"*60
 writelog(logdiv)
@@ -119,6 +119,7 @@ for datafile in datafiles:
 		ipath = os.path.join(gammadir, '%s_del.txt' % filename)
 		ifile = open(ipath, 'w')
 		writelog("Generating delete file: %s" % ipath)
+	writelog()
 
 	for row in freader:
 		rawrowcount += 1
