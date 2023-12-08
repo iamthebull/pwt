@@ -7,6 +7,8 @@ Sub Main
 
 	' configuration settings
 	pdir = getConfigVal("dir", configArray, "str")
+	titletext = getConfigVal("titletext", configArray, "str")
+	operator = getConfigVal("operator", configArray, "str")
 	overwrite = getConfigVal("overwrite", configArray, "bool")
 	background = getConfigVal("background", configArray, "bool")
 	leaveopen = getConfigVal("leaveopen", configArray, "bool")
@@ -183,6 +185,18 @@ Sub Main
 					.TitleFont.Size = 12
 				End With
 			End With
+
+			' add title text box
+			title = "\fs200 " + titletext + "\n "
+			Set TitleBox = Shapes.AddText(x:=pagewidth/2, y:=pageheight-0.25, Text:=title)
+			TitleBox.Name = "Title"
+			TitleBox.Font.hAlign = srfTACenter
+
+			boxtext = "Gamma Survey\n " + operator + "\n " + getNowStr("dd.mm.yyyy")
+			Set StampBox = Shapes.AddText(x:=4.5, y:=pageheight-1, Text:=boxtext)
+			StampBox.Name = "Stamp"
+			StampBox.Font.Size = 14
+			StampBox.Font.hAlign = srfTACenter
 
 			' save the plot
 			Plot.SaveAs(FileName:=plotfile)
@@ -382,6 +396,7 @@ Sub Main
 				cs2width = ColorScale2.Width
 
 				' make a wide copy of color relief map
+				Plot.Selection.DeselectAll
 				MapFrame2.Selected = True
 				Plot.Selection.Copy
 				Plot.Shapes.Paste
@@ -469,11 +484,17 @@ Sub Main
 				End With
 
 				' add title text box
-				title = "\fs180 " + projectName + "\n "
-				title = title + "\fs160 " + customerName + "\n "
-				title = title + "\fs140 " + folder + " -" + Str(xMax - xMin) + "m @" + Str(xInt) + "m spacing - Depth:" + Str(yMax) + "m"
+				title = "\fs200 " + titletext + "\n "
+				title = title + "\fs100   \n \fs160 " + folder + " -" + Str(xMax - xMin) + "m @" + Str(xInt) + "m spacing - Depth:" + Str(yMax) + "m"
 				Set TitleBox = Shapes.AddText(x:=pagewidth/2, y:=pageheight-0.25, Text:=title)
+				TitleBox.Name = "Title"
 				TitleBox.Font.hAlign = srfTACenter
+
+				boxtext = "Passive Seismic Profiles\n " + operator + "\n " + getNowStr("dd.mm.yyyy")
+				Set StampBox = Shapes.AddText(x:=3.5, y:=pageheight-1, Text:=boxtext)
+				StampBox.Name = "Stamp"
+				StampBox.Font.Size = 14
+				StampBox.Font.hAlign = srfTACenter
 
 				' save the plot
 				Plot.SaveAs(FileName:=plotfile)
@@ -554,8 +575,8 @@ Function readConfigFile(cwd As String) As Variant
 End Function
 
 ' returns the current date/time as a formatted string
-Function getNowStr()
-	getNowStr = Format(Now, "yyyy.mm.dd hh:nn:ss")
+Function getNowStr(Optional fmt As String = "yyyy.mm.dd hh:nn:ss")
+	getNowStr = Format(Now, fmt)
 End Function
 
 ' returns an array of the folder names in path
