@@ -1,13 +1,11 @@
-dir = C:\Projects\Testing
+dir = 
 surferdir = C:\Program Files\Golden Software\Surfer
 
-overwrite = False
-writedeleted = false
+overwrite = True
+writedeleted = true
 
-latreferror = 0.1
-lonreferror = 0.1
-latpterror = 0.01
-lonpterror = 0.01
+laterror = 0.01
+lonerror = 0.01
 
 outputGPXTrk = false
 outputGPXWp = false
