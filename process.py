@@ -48,8 +48,13 @@ else:
 			os.makedirs(cwd)
 			msg += " was created"
 writelog(msg.replace("~", cwd))
+
 overwrite = configdata["overwrite"].lower() == 'true' if "overwrite" in configdata else False
 writedeleted = configdata["writedeleted"].lower() == 'true' if "writedeleted" in configdata else False
+
+laterror = float(configdata["laterror"]) if "laterror" in configdata else 0.1
+lonerror = float(configdata["lonerror"]) if "lonerror" in configdata else 0.1
+
 outputGPXTrk = configdata["outputGPXTrk"].lower() == 'true' if "outputGPXTrk" in configdata else True
 outputGPXWp = configdata["outputGPXWp"].lower() == 'true' if "outputGPXWp" in configdata else True
 outputKMLTrk = configdata["outputKMLTrk"].lower() == 'true' if "outputKMLTrk" in configdata else True
@@ -160,18 +165,18 @@ for datafile in datafiles:
 				except:
 					reason = 'Invalid latitue'
 					raise invalidrow()
-				if rowcount > 1 and (abs((lat - reflat)*2/(lat + reflat)) > 0.1):
-					reason = 'Latitude out of range'
+				if rowcount > 1 and abs(lat - prevlat) > laterror:
+					reason = 'Latitude jump detected'
 					raise invalidrow()
-				
+
 				try:
 					lon = float(row[3])
 				except:
 					reason = 'Invalid longitude'
 					raise invalidrow()
-				if rowcount > 1 and (abs((lon - reflon)*2/(lon + reflon)) > 0.01):
-					reason = 'Longitude out of range'
-					raise invalidrow()
+				if rowcount > 1 and abs(lon - prevlon) > lonerror:
+						reason = 'Longitude jump detected'
+						raise invalidrow()
 				
 				if RowLength == 6:
 					try:
@@ -192,7 +197,7 @@ for datafile in datafiles:
 				prevlon = lon
 				prevlat = lat
 
-				row = ["%5i" % validrowcount, "%6.1f" % alt, "%10.6f" % lat, "%10.6f" % lon, "%8s" % datetm.strftime(rawdateformat), "%8s" % datetm.strftime(rawtimeformat)]
+				row = ["%5i" % wp, "%6.1f" % alt, "%10.6f" % lat, "%10.6f" % lon, "%8s" % datetm.strftime(rawdateformat), "%8s" % datetm.strftime(rawtimeformat)]
 				fwriter.writerow(row)
 
 				if validrowcount == 1:
@@ -278,5 +283,5 @@ writelog("Processing completed - %s" % datetime.now().strftime("%Y.%m.%d %H:%M:%
 writelog(logdiv)
 logfile.close()
 
-if "scripter" in configdata:
-	subprocess.run([configdata["scripter"], "-x", os.path.join(pdir,"process.bas"), cwd])
+if "surferdir" in configdata:
+	subprocess.run([os.path.join(configdata["surferdir"],"scripter.exe"), "-x", os.path.join(pdir,"process.bas"), cwd])
