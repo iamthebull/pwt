@@ -64,7 +64,8 @@ Sub Main
 
 	' set directories
 	If Command$ <> "" Then
-		rootdir = Mid(Command$, 2, Len(Command$)-2)
+		' rootdir = Mid(Command$, 2, Len(Command$)-2)
+		rootdir = Command$
 	ElseIf pdir <> "" Then
 		rootdir = pdir
 	Else
