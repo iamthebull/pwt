@@ -165,9 +165,12 @@ def process():
 						rawdatetime = now
 			else:
 				try:
-					rowcount += 1
-					if rowcount == 1:
+					if rowcount == 0:
 						RowLength = len(row)
+						if RowLength not in [4, 6]:
+							reason = 'Missing Values'
+							raise invalidrow()
+					rowcount += 1
 					try:
 						wp = int(row[0])
 					except:
